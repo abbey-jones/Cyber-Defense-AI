@@ -30,7 +30,10 @@ def prepend_attributes_to_file(data_dir, input_kdd, output_filename="tmp", label
     
     return tmp_file
 
-def load_data(data_dir, input_kdd, output_filename="tmp", labeled=False):
-    tmp_file = prepend_attributes_to_file(data_dir, input_kdd, output_filename=output_filename, labeled=labeled)
+def load_data(data_dir, input_kdd, prepend=True, output_filename="tmp", labeled=False):
+    if prepend:
+        tmp_file = prepend_attributes_to_file(data_dir, input_kdd, output_filename=output_filename, labeled=labeled)
     data = converters.load_any_file(data_dir + tmp_file)
+    if labeled:
+        data.class_is_last()
     return data

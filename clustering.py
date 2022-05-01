@@ -1,11 +1,6 @@
-import weka.core.jvm as jvm
-
 from weka.core.converters import Loader
 from weka.clusterers import Clusterer, ClusterEvaluation
 import weka.core.converters as converters
-
-from datetime import datetime
-import traceback
 
 def eval_clusterer(clusterer, eval_data, show_eval=True):
     # classes to clusters

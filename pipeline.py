@@ -4,16 +4,18 @@ from datetime import datetime
 import traceback
 
 from clustering import build_clusterer, eval_clusterer
+from classifiers import naive_bayes
 from utilities import load_data
 
 data_dir = "/home/student/Cyber-Defense-AI/data/"
 data_file = "kddcup.testdata.unlabeled_10_percent"
 eval_file = "kddcup.data_10_percent_corrected"
 
-# def main():
-#     pass
+def main_classify():
+    data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
+    naive_bayes(data)
 
-def main():
+def main_cluster():
     start_time = datetime.now()
     do_eval = False
     
@@ -22,7 +24,7 @@ def main():
     
     eval_load_time = None
     if eval_file and do_eval:
-        eval_data = load_data(eval_file, output_filename="eval", labeled=True)
+        eval_data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
         eval_data.class_is_last()
         eval_load_time = datetime.now()
     
@@ -54,7 +56,7 @@ def main():
 if __name__ == "__main__":
     try:
         jvm.start(max_heap_size="512m")
-        main()
+        main_classify()
     except Exception as e:
         print(traceback.format_exc())
     finally:
