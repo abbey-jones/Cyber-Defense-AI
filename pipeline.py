@@ -8,6 +8,7 @@ import traceback
 from expansion import attribute_selection, get_nominal_to_numeric_mapping, get_weights,  insert_meta_feature
 from clustering import build_clusterer, eval_clusterer
 from classifiers import build_classifier
+from evaluation import get_percent_correct
 from utilities import load_data
 
 data_dir = "/home/student/Cyber-Defense-AI/data/"
@@ -93,6 +94,9 @@ if __name__ == "__main__":
         data = main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag)
         # use classifier
         data = main_run_classifier(data, classifier, attack_types)
+        data.class_is_last()
+        # evaluate
+        print(get_percent_correct(data, eval))
 
     except Exception as e:
         print(traceback.format_exc())

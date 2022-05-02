@@ -60,7 +60,7 @@ def insert_meta_feature(data, weights, dict_protocol_type, dict_service, dict_fl
     for class_attribute in data.attribute(data.class_index).values:
         meta_dict[class_attribute] = 0
         count_dict[class_attribute] = 0
-    for i in range(int(data.num_instances/20)):#range(data.num_instances):
+    for i in range(data.num_instances):
         if i % 10000 == 0:
             print(f"calculating metascore {i}/{data.num_instances}")
         for class_attribute in data.attribute(data.class_index).values:
