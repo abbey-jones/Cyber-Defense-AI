@@ -31,6 +31,7 @@ def prepend_attributes_to_file(data_dir, input_kdd, output_filename="tmp", label
     return tmp_file
 
 def load_data(data_dir, input_kdd, prepend=True, output_filename="tmp", labeled=False):
+    print(f"Loading {data_dir}{input_kdd}")
     tmp_file = input_kdd
     if prepend:
         tmp_file = prepend_attributes_to_file(data_dir, input_kdd, output_filename=output_filename, labeled=labeled)
