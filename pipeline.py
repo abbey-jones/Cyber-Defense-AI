@@ -23,12 +23,12 @@ def main_build_classify(weights, dict_protocol_type, dict_service, dict_flag):
     return data, classifier
 
 def main_build_cluster():
-    # data = load_data(data_dir, data_file)
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
     data = remove_last_attribute(data)
+    # TODO: number of clusters as function of dataset size?
+    # num_clusters = int(data.num_instances/10)
     num_clusters = 10
     clusterer = build_clusterer(data, num_clusters=num_clusters)
-    # clusterer = build_clusterer(data, num_clusters=int(data.num_instances/10))
     return data, clusterer, num_clusters
 
 def main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag):
@@ -96,7 +96,8 @@ if __name__ == "__main__":
         data = main_run_classifier(data, classifier, attack_types)
         data.class_is_last()
         # evaluate
-        print(get_percent_correct(data, eval))
+        eval2 = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
+        print(get_percent_correct(data, eval2))
 
     except Exception as e:
         print(traceback.format_exc())
