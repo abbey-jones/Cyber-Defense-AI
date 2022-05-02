@@ -51,34 +51,40 @@ def insert_meta_feature(data, dict_protocol_type, dict_service, dict_flag):
     for class_attribute in data.attribute(data.class_index).values:
         meta_dict[class_attribute] = 0
         count_dict[class_attribute] = 0
-        for i in range(data.num_instances):
+    for range(data.num_instances):
+        if i % 1000 == 0:
+            print(f"{i}/{data.num_instances}")
+        for class_attribute in data.attribute(data.class_index).values:
             instance = data.get_instance(i)
             if class_attribute == instance.get_string_value(data.class_index):
                 # use info gain weight to calculate metascore
                 metascore = 0
                 for index, weight in enumerate(weights):
                     if index == 1:
-                        value = data.get_instance(0).get_string_value(index)
+                        value = instance.get_string_value(index)
                         value = dict_protocol_type[value]
                     elif index == 2:
-                        value = data.get_instance(0).get_string_value(index)
+                        value = instance.get_string_value(index)
                         value = dict_service[value]
                     elif index == 3:
-                        value = data.get_instance(0).get_string_value(index)
+                        value = instance.get_string_value(index)
                         value = dict_flag[value]
                     else:
-                        value = data.get_instance(0).get_value(index)
+                        value = instance.get_value(index)
                     metascore += weight*value
                 meta_dict[class_attribute] += metascore
                 count_dict[class_attribute] += 1
     print(meta_dict)
     print(count_dict)
 
-    # TODO: weight metascore against class/cluster weight
+    # weight metascore against class/cluster weight
     for class_attribute in data.attribute(data.class_index).values:
         meta_dict[class_attribute] = meta_dict[class_attribute] * count_dict[class_attribute] / data.num_instances
     print(meta_dict)
 
-    # TODO: insert metascore as first attribute
-    # data.insert_attribute(Attribute.create_numeric("metascore"), 0)
-    # data.get_instance(0).set_value(0, metascore)
+    # insert metascore as first attribute
+    data.insert_attribute(Attribute.create_numeric("metascore"), 0)
+    for i in range(data.num_instances):
+        data.get_instance(i).set_value(0, meta_dict[data.get_instance(i).get_string_value(data.class_index)])
+
+    return data

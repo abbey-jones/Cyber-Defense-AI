@@ -16,7 +16,7 @@ all_eval_file = "kddcup.data.corrected"
 def main_meta_feature(dict_protocol_type, dict_service, dict_flag):
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
     # data = load_data(data_dir, data_file, prepend=False)
-    insert_meta_feature(data, dict_protocol_type, dict_service, dict_flag)
+    data = insert_meta_feature(data, dict_protocol_type, dict_service, dict_flag)
 
 def main_classify():
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
