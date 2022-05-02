@@ -68,25 +68,48 @@ def insert_meta_feature(data, weights, dict_protocol_type, dict_service, dict_fl
             if class_attribute == instance.get_string_value(data.class_index):
                 # use info gain weight to calculate metascore
                 metascore = 0
+                # multiply weight by attribute value, sum metascores
                 for index, weight in enumerate(weights):
+                    # protocol_type
                     if index == 1:
                         value = instance.get_string_value(index)
-                        value = dict_protocol_type[value]
+                        value = dict_protocol_type[value] / len(dict_protocol_type)
+                    # service
                     elif index == 2:
                         value = instance.get_string_value(index)
-                        value = dict_service[value]
+                        value = dict_service[value] / len(dict_service)
+                    # flag
                     elif index == 3:
                         value = instance.get_string_value(index)
-                        value = dict_flag[value]
-                    else:
+                        value = dict_flag[value] / len(dict_flag)
+                    # src_bytes
+                    elif index == 4 :
                         value = instance.get_value(index)
+                        continue
+                    # dst_bytes
+                    elif index == 5:
+                        src_bytes = value
+                        dst_bytes = instance.get_value(index)
+                        sum_bytes = dst_bytes + src_bytes
+                        if sum_bytes > 0:
+                            value = src_bytes / sum_bytes
+                            metascore += weights[index-1]*value
+                            value = dst_bytes / sum_bytes
+                        else:
+                            value = 0
+                    else:
+                        if data.attribute(index).upper_numeric_bound > 1:
+                            value = instance.get_value(index) / data.attribute(index).upper_numeric_bound
+                        else:
+                            value = instance.get_value(index)
                     metascore += weight*value
-                meta_dict[class_attribute] += metascore
+                # normalize against number of attributes
+                meta_dict[class_attribute] += metascore / len(weights)
                 count_dict[class_attribute] += 1
 
     # weight metascore against class/cluster weight
     for class_attribute in data.attribute(data.class_index).values:
-        meta_dict[class_attribute] = meta_dict[class_attribute] * count_dict[class_attribute] / data.num_instances
+        meta_dict[class_attribute] = meta_dict[class_attribute] * (count_dict[class_attribute] / data.num_instances)
 
     # insert metascore as first attribute
     data.insert_attribute(Attribute.create_numeric("metascore"), 0)
