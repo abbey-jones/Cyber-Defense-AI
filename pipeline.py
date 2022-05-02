@@ -3,6 +3,7 @@ import weka.core.jvm as jvm
 from datetime import datetime
 import traceback
 
+from expansion import attribute_selection, get_nominal_to_numeric_mapping, insert_meta_feature
 from clustering import build_clusterer, eval_clusterer
 from classifiers import naive_bayes
 from utilities import load_data
@@ -10,6 +11,12 @@ from utilities import load_data
 data_dir = "/home/student/Cyber-Defense-AI/data/"
 data_file = "kddcup.testdata.unlabeled_10_percent"
 eval_file = "kddcup.data_10_percent_corrected"
+all_eval_file = "kddcup.data.corrected"
+
+def main_meta_feature(dict_protocol_type, dict_service, dict_flag):
+    data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
+    # data = load_data(data_dir, data_file, prepend=False)
+    insert_meta_feature(data, dict_protocol_type, dict_service, dict_flag)
 
 def main_classify():
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
@@ -25,10 +32,9 @@ def main_cluster():
     eval_load_time = None
     if eval_file and do_eval:
         eval_data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
-        eval_data.class_is_last()
         eval_load_time = datetime.now()
     
-    clusterer = build_clusterer(data, clusters=23)
+    clusterer = build_clusterer(data, clusters=len(data/10))
     build_clusterer_time = datetime.now()
     # print(clusterer)
 
@@ -55,8 +61,13 @@ def main_cluster():
 
 if __name__ == "__main__":
     try:
-        jvm.start(max_heap_size="512m")
-        main_classify()
+        jvm.start(max_heap_size="4096m")
+        all_labeled_data = load_data(data_dir, all_eval_file, prepend=True, output_filename="eval", labeled=True)
+        dict_protocol_type, dict_service, dict_flag = get_nominal_to_numeric_mapping(all_labeled_data)
+        main_meta_feature(dict_protocol_type, dict_service, dict_flag)
+
+        # main_cluster()
+        # main_test_data_patching()
     except Exception as e:
         print(traceback.format_exc())
     finally:
