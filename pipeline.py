@@ -81,14 +81,14 @@ def main_run_classifier(data, classifier, attack_types):
 
 classifier_algorithms = [
     "weka.classifiers.bayes.NaiveBayes",
-    "weka.classifiers.functions.Logistic",
+    "weka.classifiers.rules.ZeroR",
     "weka.classifiers.trees.RandomTree"
 ]
 
 clusterer_algorithms = [
     "weka.clusterers.SimpleKMeans",
-    "weka.clusterers.Cobweb",
-    "weka.clusterers.EM",
+    "weka.clusterers.FarthestFirst",
+    "weka.clusterers.Canopy",
 ]
 
 def full_pipeline(algorithms, weights, dict_protocol_type, dict_service, dict_flag, attack_types):
