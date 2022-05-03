@@ -2,8 +2,8 @@ import weka.core.converters as converters
 from weka.classifiers import Classifier, Evaluation
 from weka.core.classes import Random
 
-def build_classifier(data):
-    classifier_name = "weka.classifiers.bayes.NaiveBayes"
+def build_classifier(algo, data):
+    classifier_name = algo
     print(f"Training {classifier_name} classifier")
     classifier = Classifier(classname=classifier_name)
     classifier.build_classifier(data)

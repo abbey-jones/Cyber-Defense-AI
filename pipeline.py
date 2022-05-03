@@ -2,6 +2,9 @@ import weka.core.jvm as jvm
 from weka.core.dataset import Attribute
 from weka.filters import Filter
 
+from scipy.optimize import minimize
+from numpy.random import randint
+
 from datetime import datetime
 import traceback
 
@@ -16,19 +19,19 @@ data_file = "kddcup.testdata.unlabeled_10_percent"
 eval_file = "kddcup.data_10_percent_corrected"
 all_eval_file = "kddcup.data.corrected"
 
-def main_build_classify(weights, dict_protocol_type, dict_service, dict_flag):
+def main_build_classify(algo, weights, dict_protocol_type, dict_service, dict_flag):
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
     data = insert_meta_feature(data, weights, dict_protocol_type, dict_service, dict_flag)
-    classifier = build_classifier(data)
+    classifier = build_classifier(algo, data)
     return data, classifier
 
-def main_build_cluster():
+def main_build_cluster(algo):
     data = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
     data = remove_last_attribute(data)
     # TODO: number of clusters as function of dataset size?
     # num_clusters = int(data.num_instances/10)
     num_clusters = 10
-    clusterer = build_clusterer(data, num_clusters=num_clusters)
+    clusterer = build_clusterer(algo, data, num_clusters=num_clusters)
     return data, clusterer, num_clusters
 
 def main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag):
@@ -76,6 +79,50 @@ def main_run_classifier(data, classifier, attack_types):
     data.class_is_last()
     return data
 
+classifier_algorithms = [
+    "weka.classifiers.bayes.NaiveBayes",
+    "weka.classifiers.functions.Logistic",
+    "weka.classifiers.trees.RandomTree"
+]
+
+clusterer_algorithms = [
+    "weka.clusterers.SimpleKMeans",
+    "weka.clusterers.Cobweb",
+    "weka.clusterers.EM",
+]
+
+def full_pipeline(algorithms, weights, dict_protocol_type, dict_service, dict_flag, attack_types):
+    print(f"testing with {classifier_algorithms[algorithms[0]]} and {clusterer_algorithms[algorithms[1]]}")
+    # build classifier using labeled data and metascore
+    eval, classifier = main_build_classify(classifier_algorithms[algorithms[0]], weights, dict_protocol_type, dict_service, dict_flag)
+    # build clusterer; strips class attribute from labeled data used in above classifier
+    # for better verification
+    data, clusterer, num_clusters = main_build_cluster(clusterer_algorithms[algorithms[1]])
+    # label unlabeled data and calculate metascore
+    data = main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag)
+    # use classifier
+    data = main_run_classifier(data, classifier, attack_types)
+    data.class_is_last()
+    # evaluate
+    pct_correct = get_percent_correct(data, eval)
+    print(pct_correct)
+    # need to subtract from 1 due to using minimization optimization
+    return 1 - pct_correct
+
+def optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_types):
+    # define range for input
+    r_min, r_max = 0, 2
+    # define the starting point as a random sample from the domain
+    pt = randint(r_min, r_max, 2)
+    # perform the l-bfgs-b algorithm search
+    result = minimize(full_pipeline, pt, args=(weights, dict_protocol_type, dict_service, dict_flag, attack_types), method='L-BFGS-B', options={'maxiter':5})
+    # summarize the result
+    print('Status : %s' % result['message'])
+    print('Total Evaluations: %d' % result['nfev'])
+    # evaluate solution
+    solution = result['x']
+    evaluation = objective(solution)
+    print('Solution: f(%s) = %.5f' % (solution, evaluation))
 
 if __name__ == "__main__":
     try:
@@ -85,19 +132,8 @@ if __name__ == "__main__":
         all_labeled_data = load_data(data_dir, all_eval_file, prepend=True, output_filename="eval", labeled=True)
         dict_protocol_type, dict_service, dict_flag, attack_types = get_nominal_to_numeric_mapping(all_labeled_data)
         weights = get_weights(all_labeled_data)
-        # build classifier using labeled data and metascore
-        eval, classifier = main_build_classify(weights, dict_protocol_type, dict_service, dict_flag)
-        # build clusterer; strips class attribute from labeled data used in above classifier
-        # for better verification
-        data, clusterer, num_clusters = main_build_cluster()
-        # label unlabeled data and calculate metascore
-        data = main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag)
-        # use classifier
-        data = main_run_classifier(data, classifier, attack_types)
-        data.class_is_last()
-        # evaluate
-        eval2 = load_data(data_dir, eval_file, prepend=True, output_filename="eval", labeled=True)
-        print(get_percent_correct(data, eval2))
+        # perform pipeline optimization
+        optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_types)
 
     except Exception as e:
         print(traceback.format_exc())
