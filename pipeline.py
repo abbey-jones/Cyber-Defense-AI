@@ -6,6 +6,7 @@ from scipy.optimize import minimize
 from numpy.random import randint
 
 from datetime import datetime
+import itertools
 import traceback
 
 from expansion import attribute_selection, get_nominal_to_numeric_mapping, get_weights,  insert_meta_feature
@@ -114,17 +115,35 @@ def full_pipeline(algorithms, weights, dict_protocol_type, dict_service, dict_fl
 def optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_types):
     # define range for input
     r_min, r_max = 0, 3
-    # define the starting point as a random sample from the domain
-    pt = randint(r_min, r_max, 2)
-    # perform the l-bfgs-b algorithm search
-    result = minimize(full_pipeline, pt, args=(weights, dict_protocol_type, dict_service, dict_flag, attack_types), method='L-BFGS-B', bounds=[(r_min,r_max),(r_min,r_max)], options={'maxiter':5})
-    # summarize the result
-    print('Status : %s' % result['message'])
-    print('Total Evaluations: %d' % result['nfev'])
-    # evaluate solution
-    solution = result['x']
-    evaluation = objective(solution)
-    print('Solution: f(%s) = %.5f' % (solution, evaluation))
+
+    combinations = list(itertools.product(*[list(range(r_min, r_max))]*2))
+    values = []
+    for combo in combinations:
+        result = full_pipeline(combo, weights, dict_protocol_type, dict_service, dict_flag, attack_types)
+        print(classifier_algorithms[combo[0]], clusterer_algorithms[combo[1]], result)
+        values.append((combo, result))
+
+    print(values)
+
+    best = [c for c,v in values if v == min([v for c,v in values])]
+    print(classifier_algorithms[c[0]], clusterer_algorithms[c[1]], min([v for c,v in values]))
+
+    # TODO: optimization function is good if we want to test all classification/clustering algos, or 
+    # pare down from initial random combo to some other guess space 
+    # (plus a variety of methods such as Nelder-Mead vs L-BFGS-B),
+    # but it ends up being overkill for a 3x3 matrix
+
+    # # define the starting point as a random sample from the domain
+    # pt = randint(r_min, r_max, 2)
+    # # perform the l-bfgs-b algorithm search
+    # result = minimize(full_pipeline, pt, args=(weights, dict_protocol_type, dict_service, dict_flag, attack_types), method='Nelder-Mead', bounds=[(r_min,r_max),(r_min,r_max)], options={'maxiter':2})
+    # # summarize the result
+    # print('Status : %s' % result['message'])
+    # print('Total Evaluations: %d' % result['nfev'])
+    # # evaluate solution
+    # solution = result['x']
+    # evaluation = objective(solution)
+    # print('Solution: f(%s) = %.5f' % (solution, evaluation))
 
 if __name__ == "__main__":
     try:
