@@ -117,7 +117,7 @@ def optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_ty
     # define the starting point as a random sample from the domain
     pt = randint(r_min, r_max, 2)
     # perform the l-bfgs-b algorithm search
-    result = minimize(full_pipeline, pt, args=(weights, dict_protocol_type, dict_service, dict_flag, attack_types), method='L-BFGS-B', options={'maxiter':5})
+    result = minimize(full_pipeline, pt, args=(weights, dict_protocol_type, dict_service, dict_flag, attack_types), method='L-BFGS-B', bounds=[(r_min,r_max),(r_min,r_max)], options={'maxiter':5})
     # summarize the result
     print('Status : %s' % result['message'])
     print('Total Evaluations: %d' % result['nfev'])
