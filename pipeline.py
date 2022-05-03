@@ -92,12 +92,14 @@ clusterer_algorithms = [
 ]
 
 def full_pipeline(algorithms, weights, dict_protocol_type, dict_service, dict_flag, attack_types):
-    print(f"testing with {classifier_algorithms[algorithms[0]]} and {clusterer_algorithms[algorithms[1]]}")
+    class_algo = int(algorithms[0])
+    clust_algo = int(algorithms[1])
+    print(f"testing with {classifier_algorithms[class_algo]} and {clusterer_algorithms[clust_algo]}")
     # build classifier using labeled data and metascore
-    eval, classifier = main_build_classify(classifier_algorithms[algorithms[0]], weights, dict_protocol_type, dict_service, dict_flag)
+    eval, classifier = main_build_classify(classifier_algorithms[class_algo], weights, dict_protocol_type, dict_service, dict_flag)
     # build clusterer; strips class attribute from labeled data used in above classifier
     # for better verification
-    data, clusterer, num_clusters = main_build_cluster(clusterer_algorithms[algorithms[1]])
+    data, clusterer, num_clusters = main_build_cluster(clusterer_algorithms[clust_algo])
     # label unlabeled data and calculate metascore
     data = main_metafeature_cluster(data, clusterer, num_clusters, weights, dict_protocol_type, dict_service, dict_flag)
     # use classifier
