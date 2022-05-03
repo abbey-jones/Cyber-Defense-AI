@@ -113,7 +113,7 @@ def full_pipeline(algorithms, weights, dict_protocol_type, dict_service, dict_fl
 
 def optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_types):
     # define range for input
-    r_min, r_max = 0, 2
+    r_min, r_max = 0, 3
     # define the starting point as a random sample from the domain
     pt = randint(r_min, r_max, 2)
     # perform the l-bfgs-b algorithm search
