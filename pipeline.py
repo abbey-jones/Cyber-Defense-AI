@@ -126,7 +126,7 @@ def optimization(weights, dict_protocol_type, dict_service, dict_flag, attack_ty
     print(values)
 
     best = [c for c,v in values if v == min([v for c,v in values])]
-    print(classifier_algorithms[best[0]], clusterer_algorithms[best[1]], min([v for c,v in values]))
+    print(classifier_algorithms[best[0][0]], clusterer_algorithms[best[0][1]], min([v for c,v in values]))
 
     # TODO: optimization function is good if we want to test all classification/clustering algos, or 
     # pare down from initial random combo to some other guess space 
